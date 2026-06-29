@@ -10,9 +10,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 // Mengambil data ringkasan untuk Info Cards
-$total_unit     = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'];
-$total_pelanggan= mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'];
-$total_sewa     = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pemesanan WHERE status_pemesanan = 'berjalan'"))['total'];
+$total_unit      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'];
+$total_pelanggan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'];
+$total_sewa      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pemesanan WHERE status_pemesanan = 'berjalan'"))['total'];
 $total_pendapatan= mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM pemesanan WHERE status_pemesanan = 'selesai'"))['total'];
 
 // Ambil data transaksi pesanan masuk yang butuh validasi atau sedang berjalan
@@ -55,7 +55,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
             justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
         
-        /* Modern Info Cards (Concept from Sneat/DashUI) */
+        /* Modern Info Cards */
         .card-counter {
             background: white; border: none; border-radius: 8px; padding: 20px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between;
@@ -90,18 +90,20 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
             
             <div class="menu-section">Data Master (8)</div>
             <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
-            <a href="#" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
-            <a href="#" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
-            <a href="#" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
-            <a href="#" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
+            <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
+            <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
+            <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
+            <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
             
             <div class="menu-section">Alur Transaksi (5)</div>
-            <a href="#" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
-            <a href="#" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
-            <a href="#" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
+            <a href="transaksi_pemesanan.php" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
+            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
+            <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
             
             <div class="menu-section">Pelaporan</div>
-            <a href="#" class="nav-link"><i class="bi bi-file-earmark-bar-graph"></i> Laporan Bulanan</a>
+            <a href="laporan_pendapatan.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Pendapatan</a>
+            <a href="laporan_pengeluaran.php" class="nav-link"><i class="bi bi-graph-down-arrow"></i> Laporan Pengeluaran</a>
+            <a href="laporan_rekapitulasi.php" class="nav-link"><i class="bi bi-journal-check"></i> Rekapitulasi Total</a>
         </div>
 
         <div class="px-2">
