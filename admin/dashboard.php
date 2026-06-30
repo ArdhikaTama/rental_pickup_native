@@ -19,10 +19,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 if (isset($_GET['aksi']) && isset($_GET['id'])) {
     $id_pesan = intval($_GET['id']);
     $status = ($_GET['aksi'] == 'setuju') ? 'dikonfirmasi' : 'dibatalkan';
-    
+
     // Update status transaksi pemesanan
     $update_status = mysqli_query($koneksi, "UPDATE pemesanan SET status_pemesanan = '$status' WHERE id_pemesanan = '$id_pesan'");
-    
+
     // Jika ditolak/dibatal, kembalikan ketersediaan armada mobil menjadi 'tersedia' kembali
     if ($status == 'dibatalkan') {
         $data_p = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT id_mobil FROM pemesanan WHERE id_pemesanan = '$id_pesan'"));
@@ -31,7 +31,7 @@ if (isset($_GET['aksi']) && isset($_GET['id'])) {
             mysqli_query($koneksi, "UPDATE mobil SET status_ketersediaan = 'tersedia' WHERE id_mobil = '$id_mob'");
         }
     }
-    
+
     header("Location: dashboard.php");
     exit();
 }
@@ -42,7 +42,7 @@ if (isset($_GET['aksi']) && isset($_GET['id'])) {
 $total_unit      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'] ?? 0;
 $total_pelanggan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'] ?? 0;
 $total_sewa      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pemesanan WHERE status_pemesanan = 'berjalan'"))['total'] ?? 0;
-$total_pendapatan= mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM pemesanan WHERE status_pemesanan = 'selesai'"))['total'] ?? 0;
+$total_pendapatan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM pemesanan WHERE status_pemesanan = 'selesai'"))['total'] ?? 0;
 
 // =============================================================================
 // 3. DATA UNTUK VISUALISASI GRAFIK OMZET (CHART.JS)
@@ -72,6 +72,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,46 +81,138 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+        }
+
         /* Sidebar Layout - Gray & Orange Accent */
         .sidebar {
-            width: 260px; height: 100vh; position: fixed; top: 0; left: 0;
-            background-color: #2b2c2d; color: white; padding-top: 15px; z-index: 1000;
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #2b2c2d;
+            color: white;
+            padding-top: 15px;
+            z-index: 1000;
         }
-        .sidebar .brand { padding: 10px 20px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .sidebar .menu-section { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #fd7e14; font-weight: bold; padding: 18px 20px 5px; }
-        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 10px 20px; font-size: 0.9rem; display: flex; align-items: center; text-decoration: none; border-radius: 4px; margin: 0 10px; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #fd7e14; color: white; font-weight: 500; }
-        .sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; }
-        
+
+        .sidebar .brand {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar .menu-section {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fd7e14;
+            font-weight: bold;
+            padding: 18px 20px 5px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 0 10px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #fd7e14;
+            color: white;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
         /* Main Content Wrapper */
-        .main-content { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
-        
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
         /* Topbar styling */
         .topbar {
-            background: white; height: 60px; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            background: white;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
         }
-        
+
         /* Modern Info Cards */
         .card-counter {
-            background: white; border: none; border-radius: 8px; padding: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .card-counter .icon-box {
-            width: 48px; height: 48px; border-radius: 6px; display: flex;
-            align-items: center; justify-content: center; font-size: 1.5rem;
-        }
-        .bg-light-orange { background-color: rgba(253, 126, 20, 0.15); color: #fd7e14; }
-        .bg-light-blue { background-color: rgba(13, 110, 253, 0.15); color: #0d6efd; }
-        .bg-light-success { background-color: rgba(25, 135, 84, 0.15); color: #198754; }
-        .bg-light-purple { background-color: rgba(111, 66, 193, 0.15); color: #6f42c1; }
 
-        .card-table { background: white; border: none; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); padding: 24px; }
-        .text-orange { color: #fd7e14 !important; }
+        .card-counter .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .bg-light-orange {
+            background-color: rgba(253, 126, 20, 0.15);
+            color: #fd7e14;
+        }
+
+        .bg-light-blue {
+            background-color: rgba(13, 110, 253, 0.15);
+            color: #0d6efd;
+        }
+
+        .bg-light-success {
+            background-color: rgba(25, 135, 84, 0.15);
+            color: #198754;
+        }
+
+        .bg-light-purple {
+            background-color: rgba(111, 66, 193, 0.15);
+            color: #6f42c1;
+        }
+
+        .card-table {
+            background: white;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            padding: 24px;
+        }
+
+        .text-orange {
+            color: #fd7e14 !important;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar d-flex flex-column justify-content-between pb-3">
@@ -131,25 +224,26 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                     <span class="fs-6 text-uppercase text-orange">Pickup System</span>
                 </div>
             </div>
-            
-            <a href="dashboard.php" class="nav-link active"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
-            
+
+            <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+
             <div class="menu-section">Data Master (8)</div>
             <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
             <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
             <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
             <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
             <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
-            
+
             <div class="menu-section">Alur Transaksi (5)</div>
-            <a href="transaksi_pemesanan.php" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
-            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
+            <a href="transaksi_booking.php" class="nav-link"><i class="bi bi-calendar-check"></i> Transaksi Booking</a>
+            <a href="transaksi_penyewaan.php" class="nav-link"><i class="bi bi-receipt"></i> Transaksi Penyewaan</a>
+            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran & DP</a>
+            <a href="transaksi_perpanjangan.php" class="nav-link"><i class="bi bi-clock-history"></i> Perpanjangan Sewa</a>
             <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
-            
-            <div class="menu-section">Pelaporan</div>
-            <a href="laporan_pendapatan.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Pendapatan</a>
-            <a href="laporan_pengeluaran.php" class="nav-link"><i class="bi bi-graph-down-arrow"></i> Laporan Pengeluaran</a>
-            <a href="laporan_rekapitulasi.php" class="nav-link"><i class="bi bi-journal-check"></i> Rekapitulasi Total</a>
+
+            <div class="menu-section">Pelaporan & Data</div>
+            <a href="laporan_transaksi.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Seluruhnya</a>
+            <a href="utilitas_data.php" class="nav-link"><i class="bi bi-file-earmark-excel"></i> Import & Export Data</a>
         </div>
 
         <div class="px-2">
@@ -174,7 +268,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                 <h4 class="m-0 text-dark fw-normal">Dashboard Ringkasan</h4>
                 <span class="text-muted small"><?= date('l, d F Y') ?></span>
             </div>
-            
+
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="card-counter shadow-sm">
@@ -246,37 +340,39 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(mysqli_num_rows($query_transaksi) == 0): ?>
-                                <tr><td colspan="6" class="text-muted py-3">Belum ada log transaksi masuk.</td></tr>
-                            <?php else: ?>
-                                <?php while($t = mysqli_fetch_assoc($query_transaksi)): ?>
+                            <?php if (mysqli_num_rows($query_transaksi) == 0): ?>
                                 <tr>
-                                    <td class="fw-bold">#PKP-<?= $t['id_pemesanan'] ?></td>
-                                    <td><?= htmlspecialchars($t['nama_lengkap']) ?></td>
-                                    <td><?= htmlspecialchars($t['nama_mobil']) ?> <span class="text-muted">(<?= $t['plat_nomor'] ?>)</span></td>
-                                    <td class="fw-bold text-orange">Rp <?= number_format($t['total_bayar'], 0, ',', '.') ?></td>
-                                    <td>
-                                        <?php 
-                                        if ($t['status_pemesanan'] == 'pending') echo '<span class="badge bg-warning text-dark">Pending</span>';
-                                        elseif ($t['status_pemesanan'] == 'dikonfirmasi') echo '<span class="badge bg-info">Dikonfirmasi</span>';
-                                        elseif ($t['status_pemesanan'] == 'berjalan') echo '<span class="badge bg-primary">Berjalan</span>';
-                                        elseif ($t['status_pemesanan'] == 'selesai') echo '<span class="badge bg-success">Selesai</span>';
-                                        else echo '<span class="badge bg-danger">Batal</span>';
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <?php if ($t['status_pemesanan'] == 'pending'): ?>
-                                            <a href="dashboard.php?aksi=setuju&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-success py-1 px-2 border-0" onclick="return confirm('Setujui transaksi rental pickup ini?')">
-                                                <i class="bi bi-check-circle-fill"></i> Setuju
-                                            </a>
-                                            <a href="dashboard.php?aksi=batal&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-danger py-1 px-2 border-0" onclick="return confirm('Batalkan/Tolak pengajuan sewa ini?')">
-                                                <i class="bi bi-x-circle-fill"></i> Tolak
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="text-muted small fw-medium"><i class="bi bi-shield-check text-success"></i> Selesai Validasi</span>
-                                        <?php endif; ?>
-                                    </td>
+                                    <td colspan="6" class="text-muted py-3">Belum ada log transaksi masuk.</td>
                                 </tr>
+                            <?php else: ?>
+                                <?php while ($t = mysqli_fetch_assoc($query_transaksi)): ?>
+                                    <tr>
+                                        <td class="fw-bold">#PKP-<?= $t['id_pemesanan'] ?></td>
+                                        <td><?= htmlspecialchars($t['nama_lengkap']) ?></td>
+                                        <td><?= htmlspecialchars($t['nama_mobil']) ?> <span class="text-muted">(<?= $t['plat_nomor'] ?>)</span></td>
+                                        <td class="fw-bold text-orange">Rp <?= number_format($t['total_bayar'], 0, ',', '.') ?></td>
+                                        <td>
+                                            <?php
+                                            if ($t['status_pemesanan'] == 'pending') echo '<span class="badge bg-warning text-dark">Pending</span>';
+                                            elseif ($t['status_pemesanan'] == 'dikonfirmasi') echo '<span class="badge bg-info">Dikonfirmasi</span>';
+                                            elseif ($t['status_pemesanan'] == 'berjalan') echo '<span class="badge bg-primary">Berjalan</span>';
+                                            elseif ($t['status_pemesanan'] == 'selesai') echo '<span class="badge bg-success">Selesai</span>';
+                                            else echo '<span class="badge bg-danger">Batal</span>';
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($t['status_pemesanan'] == 'pending'): ?>
+                                                <a href="dashboard.php?aksi=setuju&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-success py-1 px-2 border-0" onclick="return confirm('Setujui transaksi rental pickup ini?')">
+                                                    <i class="bi bi-check-circle-fill"></i> Setuju
+                                                </a>
+                                                <a href="dashboard.php?aksi=batal&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-danger py-1 px-2 border-0" onclick="return confirm('Batalkan/Tolak pengajuan sewa ini?')">
+                                                    <i class="bi bi-x-circle-fill"></i> Tolak
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted small fw-medium"><i class="bi bi-shield-check text-success"></i> Selesai Validasi</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
                                 <?php endwhile; ?>
                             <?php endif; ?>
                         </tbody>
@@ -310,7 +406,9 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: {
+                        display: false
+                    }
                 },
                 scales: {
                     y: {
@@ -328,4 +426,5 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

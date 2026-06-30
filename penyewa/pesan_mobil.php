@@ -11,30 +11,34 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'penyewa') {
 $id_user = $_SESSION['id_user'];
 $pesan = "";
 
-// Ambil data nama penyewa untuk topbar
-$query_user = mysqli_query($koneksi, "SELECT nama_lengkap FROM users WHERE id_user = '$id_user'");
+// Ambil data profil lengkap user dari database untuk topbar
+$query_user = mysqli_query($koneksi, "SELECT * FROM users WHERE id_user = '$id_user'");
 $user = mysqli_fetch_assoc($query_user);
 
-// MENGAMBIL PILIHAN MOBIL YANG STATUSNYA 'TERSEDIA' DAN SUDAH ADA PAKET HARGANYA
-$query_mobil = mysqli_query($koneksi, "SELECT m.*, p.harga, p.jenis_paket 
+/**
+ * FIX QUERY PENGAMBILAN MOBIL:
+ * Memastikan kolom status_ketersediaan dicek dengan nilai 'tersedia' (bukan kapital/salah kolom)
+ * dan terhubung dengan paket_harga yang sudah dibuat admin.
+ */
+$query_mobil = mysqli_query($koneksi, "SELECT m.*, p.harga, p.jenis_paket, p.id_paket 
                                        FROM mobil m 
                                        JOIN paket_harga p ON m.id_mobil = p.id_mobil 
-                                       WHERE m.status_ketersediaan = 'tersedia'");
+                                       WHERE LOWER(m.status_ketersediaan) = 'tersedia'");
 
-// Proses ketika form sewa disubmit
+// Proses ketika form disubmit
 if (isset($_POST['proses_pesan'])) {
     $id_mobil        = $_POST['id_mobil'];
     $tanggal_mulai   = $_POST['tanggal_mulai'];
     $tanggal_selesai = $_POST['tanggal_selesai'];
     
-    // Mengambil paket harga berdasarkan mobil yang dipilih
+    // Ambil data paket harga spesifik mobil terpilih
     $query_paket = mysqli_query($koneksi, "SELECT id_paket, harga FROM paket_harga WHERE id_mobil = '$id_mobil' LIMIT 1");
     $data_paket  = mysqli_fetch_assoc($query_paket);
 
     if ($data_paket) {
         $id_paket = $data_paket['id_paket'];
         
-        // Hitung selisih hari sewa
+        // Hitung selisih hari
         $tgl1 = new DateTime($tanggal_mulai);
         $tgl2 = new DateTime($tanggal_selesai);
         $jarak = $tgl1->diff($tgl2);
@@ -43,21 +47,21 @@ if (isset($_POST['proses_pesan'])) {
         $total_bayar = $data_paket['harga'] * $durasi;
         $tgl_booking = date('Y-m-d');
 
-        // Insert transaksi ke tabel pemesanan
+        // Insert ke tabel transaksi pemesanan
         $insert = "INSERT INTO pemesanan (id_user, id_mobil, id_paket, tanggal_booking, tanggal_mulai, tanggal_selesai, total_bayar, status_pemesanan) 
                    VALUES ('$id_user', '$id_mobil', '$id_paket', '$tgl_booking', '$tanggal_mulai', '$tanggal_selesai', '$total_bayar', 'pending')";
         
         if (mysqli_query($koneksi, $insert)) {
-            // Ubah status mobil menjadi 'disewa' agar tidak bentrok
+            // Update status mobil menjadi 'disewa' agar tidak bentrok
             mysqli_query($koneksi, "UPDATE mobil SET status_ketersediaan = 'disewa' WHERE id_mobil = '$id_mobil'");
             
-            $pesan = "<div class='alert alert-success small py-2'>Pemesanan sukses dibuat! Mengalihkan ke Beranda...</div>";
+            $pesan = "<div class='alert alert-success small py-2'>Pemesanan sukses dibuat! Mengalihkan...</div>";
             echo "<meta http-equiv='refresh' content='2;url=dashboard.php'>";
         } else {
             $pesan = "<div class='alert alert-danger small py-2'>Gagal memproses pemesanan: " . mysqli_error($koneksi) . "</div>";
         }
     } else {
-        $pesan = "<div class='alert alert-danger small py-2'>Error: Paket harga belum diatur admin.</div>";
+        $pesan = "<div class='alert alert-danger small py-2'>Paket harga untuk mobil ini belum dikonfigurasi admin.</div>";
     }
 }
 ?>
@@ -72,7 +76,7 @@ if (isset($_POST['proses_pesan'])) {
     <style>
         body { background-color: #e9ecef; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
-        /* Sidebar Layout (Sesuai Dashboard Penyewa) */
+        /* Sidebar layout matching dashboard.php style */
         .sidebar {
             width: 260px; height: 100vh; position: fixed; top: 0; left: 0;
             background-color: #333333; color: white; padding-top: 15px; z-index: 1000;
@@ -83,10 +87,10 @@ if (isset($_POST['proses_pesan'])) {
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #fd7e14; color: white; font-weight: 500; }
         .sidebar .nav-link i { margin-right: 10px; font-size: 1.1rem; }
         
-        /* Main Content */
+        /* Main Content Wrapper */
         .main-content { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
         
-        /* Topbar */
+        /* Topbar styling */
         .topbar {
             background: white; height: 60px; display: flex; align-items: center;
             justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -99,6 +103,7 @@ if (isset($_POST['proses_pesan'])) {
 </head>
 <body>
 
+    <!-- SIDEBAR UTUH & LENGKAP SESUAI GAMBAR 1 & BERANDA -->
     <div class="sidebar d-flex flex-column justify-content-between pb-3">
         <div>
             <div class="brand fw-bold mb-3 d-flex align-items-center">
@@ -114,6 +119,13 @@ if (isset($_POST['proses_pesan'])) {
             <div class="menu-section">Transaksi Logistik</div>
             <a href="pesan_mobil.php" class="nav-link active"><i class="bi bi-file-earmark-plus"></i> Form Sewa Mobil</a>
             <a href="#" class="nav-link"><i class="bi bi-clock-history"></i> Riwayat Transaksi</a>
+            
+            <div class="menu-section">Verifikasi Jaminan</div>
+            <a href="#" class="nav-link"><i class="bi bi-shield-check"></i> Status Serah Jaminan</a>
+            
+            <div class="menu-section">Layanan Pelanggan</div>
+            <a href="#" class="nav-link"><i class="bi bi-chat-square-text"></i> Komplain & Saran</a>
+            <a href="#" class="nav-link"><i class="bi bi-question-circle"></i> FAQ</a>
         </div>
 
         <div class="px-2">
@@ -124,13 +136,21 @@ if (isset($_POST['proses_pesan'])) {
         </div>
     </div>
 
+    <!-- MAIN CONTENT AREA -->
     <div class="main-content">
+        <!-- TOPBAR -->
         <div class="topbar">
             <span class="text-muted fw-medium small">Formulir Pengajuan Sewa Armada</span>
-            <span class="fw-semibold text-dark small"><i class="bi bi-person-circle text-orange"></i> <?= htmlspecialchars($user['nama_lengkap']); ?></span>
+            <div class="d-flex align-items-center gap-3 small">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle fs-5 text-orange"></i>
+                    <span class="fw-semibold text-dark"><?= htmlspecialchars($user['nama_lengkap']); ?></span>
+                </div>
+            </div>
         </div>
 
-        <div class="container-fluid p-4">
+        <!-- DASHBOARD CONTAINER -->
+        <div class="container-fluid p-4 flex-grow-1">
             <h4 class="mb-4 text-dark fw-normal">Sewa Mobil Baru</h4>
             
             <div class="row">
@@ -144,16 +164,16 @@ if (isset($_POST['proses_pesan'])) {
                                 <select name="id_mobil" class="form-select" required>
                                     <option value="">-- Pilih Unit Tersedia --</option>
                                     <?php if(mysqli_num_rows($query_mobil) == 0): ?>
-                                        <option value="" disabled class="text-danger">Tidak ada mobil dengan tarif aktif yang tersedia saat ini.</option>
+                                        <option value="" disabled class="text-danger">MOHON PERHATIAN: Tidak ada unit mobil yang siap disewa atau admin belum mengatur tarif harga sewa di data master admin!</option>
                                     <?php else: ?>
                                         <?php while($m = mysqli_fetch_assoc($query_mobil)): ?>
                                             <option value="<?= $m['id_mobil']; ?>">
-                                                <?= htmlspecialchars($m['nama_mobil']); ?> [<?= htmlspecialchars($m['plat_nomor']); ?>] - Rp <?= number_format($m['harga'], 0, ',', '.'); ?> / <?= $m['jenis_paket'] ?>
+                                                <?= htmlspecialchars($m['nama_mobil']); ?> [<?= htmlspecialchars($m['plat_nomor']); ?>] - Rp <?= number_format($m['harga'], 0, ',', '.'); ?> / Paket <?= htmlspecialchars($m['jenis_paket']); ?>
                                             </option>
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </select>
-                                <div class="form-text small text-muted">Jika pilihan kosong, pastikan Admin telah mengonfigurasi **Tarif Sewa** untuk mobil terkait di panel admin.</div>
+                                <div class="form-text small text-muted">Pilihan otomatis sinkron dengan data master armada & tarif harga yang aktif di sistem.</div>
                             </div>
                             
                             <div class="row">
@@ -176,7 +196,13 @@ if (isset($_POST['proses_pesan'])) {
                 </div>
             </div>
         </div>
+
+        <!-- FOOTER BAR -->
+        <footer class="bg-white text-center py-3 text-muted small border-top mt-auto">
+            Copyright © Rental Pickup JKT 2026
+        </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -59,36 +59,44 @@ $list_sopir = mysqli_query($koneksi, "SELECT * FROM sopir ORDER BY id_sopir DESC
 </head>
 <body>
 
-    <div class="sidebar d-flex flex-column justify-content-between pb-3">
-        <div>
-            <div class="brand fw-bold mb-3 d-flex align-items-center">
-                <i class="bi bi-shield-lock-fill me-2 fs-4 text-orange"></i>
-                <div>
-                    <span class="d-block lh-1 small opacity-75 text-white">ADMINISTRATOR</span>
-                    <span class="fs-6 text-uppercase text-orange">Pickup System</span>
-                </div>
+  <div class="sidebar d-flex flex-column justify-content-between pb-3">
+    <div>
+        <div class="brand fw-bold mb-3 d-flex align-items-center">
+            <i class="bi bi-shield-lock-fill me-2 fs-4 text-orange"></i>
+            <div>
+                <span class="d-block lh-1 small opacity-75 text-white">ADMINISTRATOR</span>
+                <span class="fs-6 text-uppercase text-orange">Pickup System</span>
             </div>
-            <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
-            <div class="menu-section">Data Master (8)</div>
-            <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
-            <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
-            <a href="master_sopir.php" class="nav-link active"><i class="bi bi-person-badge"></i> Data Sopir</a>
-            <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
-            <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
-            <div class="menu-section">Alur Transaksi (5)</div>
-            <a href="transaksi_pemesanan.php" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
-            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
-            <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
-            <div class="menu-section">Pelaporan</div>
-            <a href="laporan_pendapatan.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Pendapatan</a>
-            <a href="laporan_pengeluaran.php" class="nav-link"><i class="bi bi-graph-down-arrow"></i> Laporan Pengeluaran</a>
-            <a href="laporan_rekapitulasi.php" class="nav-link"><i class="bi bi-journal-check"></i> Rekapitulasi Total</a>
         </div>
-        <div class="px-2">
-            <hr class="text-white opacity-25">
-            <a href="../logout.php" class="nav-link text-danger fw-bold rounded bg-light bg-opacity-10" onclick="return confirm('Keluar dari panel admin?')"><i class="bi bi-box-arrow-right text-danger"></i> Sign Out</a>
-        </div>
+        
+        <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+        
+        <div class="menu-section">Data Master (8)</div>
+        <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
+        <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
+        <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
+        <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
+        <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
+        
+        <div class="menu-section">Alur Transaksi (5)</div>
+        <a href="transaksi_booking.php" class="nav-link"><i class="bi bi-calendar-check"></i> Transaksi Booking</a>
+        <a href="transaksi_penyewaan.php" class="nav-link"><i class="bi bi-receipt"></i> Transaksi Penyewaan</a>
+        <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran & DP</a>
+        <a href="transaksi_perpanjangan.php" class="nav-link"><i class="bi bi-clock-history"></i> Perpanjangan Sewa</a>
+        <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
+        
+        <div class="menu-section">Pelaporan & Data</div>
+        <a href="laporan_transaksi.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Seluruhnya</a>
+        <a href="utilitas_data.php" class="nav-link"><i class="bi bi-file-earmark-excel"></i> Import & Export Data</a>
     </div>
+
+    <div class="px-2">
+        <hr class="text-white opacity-25">
+        <a href="../logout.php" class="nav-link text-danger fw-bold rounded bg-light bg-opacity-10" onclick="return confirm('Keluar dari panel admin?')">
+            <i class="bi bi-box-arrow-right text-danger"></i> Sign Out
+        </a>
+    </div>
+</div>
 
     <div class="main-content">
         <div class="topbar">

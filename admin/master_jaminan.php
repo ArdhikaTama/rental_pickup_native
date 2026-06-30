@@ -40,6 +40,7 @@ $list_jaminan = mysqli_query($koneksi, "SELECT * FROM jenis_jaminan ORDER BY id_
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,20 +48,95 @@ $list_jaminan = mysqli_query($koneksi, "SELECT * FROM jenis_jaminan ORDER BY id_
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        .sidebar { width: 260px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #2b2c2d; color: white; padding-top: 15px; z-index: 1000; }
-        .sidebar .brand { padding: 10px 20px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .sidebar .menu-section { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #fd7e14; font-weight: bold; padding: 18px 20px 5px; }
-        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 10px 20px; font-size: 0.9rem; display: flex; align-items: center; text-decoration: none; border-radius: 4px; margin: 0 10px; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #fd7e14; color: white; font-weight: 500; }
-        .sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; }
-        .main-content { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
-        .topbar { background: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
-        .text-orange { color: #fd7e14 !important; }
-        .btn-orange { background-color: #fd7e14; color: white; }
-        .btn-orange:hover { background-color: #e8590c; color: white; }
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #2b2c2d;
+            color: white;
+            padding-top: 15px;
+            z-index: 1000;
+        }
+
+        .sidebar .brand {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar .menu-section {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fd7e14;
+            font-weight: bold;
+            padding: 18px 20px 5px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 0 10px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #fd7e14;
+            color: white;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: white;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .text-orange {
+            color: #fd7e14 !important;
+        }
+
+        .btn-orange {
+            background-color: #fd7e14;
+            color: white;
+        }
+
+        .btn-orange:hover {
+            background-color: #e8590c;
+            color: white;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar d-flex flex-column justify-content-between pb-3">
@@ -72,29 +148,33 @@ $list_jaminan = mysqli_query($koneksi, "SELECT * FROM jenis_jaminan ORDER BY id_
                     <span class="fs-6 text-uppercase text-orange">Pickup System</span>
                 </div>
             </div>
-            
+
             <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
-            
+
             <div class="menu-section">Data Master (8)</div>
             <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
             <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
             <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
             <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
-            <a href="master_jaminan.php" class="nav-link active"><i class="bi bi-collection"></i> Jenis Jaminan</a>
-            
+            <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
+
             <div class="menu-section">Alur Transaksi (5)</div>
-            <a href="transaksi_pemesanan.php" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
-            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
+            <a href="transaksi_booking.php" class="nav-link"><i class="bi bi-calendar-check"></i> Transaksi Booking</a>
+            <a href="transaksi_penyewaan.php" class="nav-link"><i class="bi bi-receipt"></i> Transaksi Penyewaan</a>
+            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran & DP</a>
+            <a href="transaksi_perpanjangan.php" class="nav-link"><i class="bi bi-clock-history"></i> Perpanjangan Sewa</a>
             <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
-            
-            <div class="menu-section">Pelaporan</div>
-            <a href="laporan_pendapatan.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Pendapatan</a>
-            <a href="laporan_pengeluaran.php" class="nav-link"><i class="bi bi-graph-down-arrow"></i> Laporan Pengeluaran</a>
-            <a href="laporan_rekapitulasi.php" class="nav-link"><i class="bi bi-journal-check"></i> Rekapitulasi Total</a>
+
+            <div class="menu-section">Pelaporan & Data</div>
+            <a href="laporan_transaksi.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Seluruhnya</a>
+            <a href="utilitas_data.php" class="nav-link"><i class="bi bi-file-earmark-excel"></i> Import & Export Data</a>
         </div>
+
         <div class="px-2">
             <hr class="text-white opacity-25">
-            <a href="../logout.php" class="nav-link text-danger fw-bold rounded bg-light bg-opacity-10" onclick="return confirm('Keluar dari panel admin?')"><i class="bi bi-box-arrow-right text-danger"></i> Sign Out</a>
+            <a href="../logout.php" class="nav-link text-danger fw-bold rounded bg-light bg-opacity-10" onclick="return confirm('Keluar dari panel admin?')">
+                <i class="bi bi-box-arrow-right text-danger"></i> Sign Out
+            </a>
         </div>
     </div>
 
@@ -142,17 +222,19 @@ $list_jaminan = mysqli_query($koneksi, "SELECT * FROM jenis_jaminan ORDER BY id_
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if(!$list_jaminan || mysqli_num_rows($list_jaminan) == 0): ?>
-                                        <tr><td colspan="3" class="text-muted py-3">Belum ada skema syarat jaminan.</td></tr>
+                                    <?php if (!$list_jaminan || mysqli_num_rows($list_jaminan) == 0): ?>
+                                        <tr>
+                                            <td colspan="3" class="text-muted py-3">Belum ada skema syarat jaminan.</td>
+                                        </tr>
                                     <?php else: ?>
                                         <?php while ($j = mysqli_fetch_assoc($list_jaminan)): ?>
-                                        <tr>
-                                            <td class="fw-bold text-dark text-start"><i class="bi bi-card-checklist text-orange me-1"></i> <?= htmlspecialchars($j['nama_jaminan']); ?></td>
-                                            <td class="text-start"><?= htmlspecialchars($j['keterangan']); ?></td>
-                                            <td>
-                                                <a href="master_jaminan.php?hapus=<?= $j['id_jaminan']; ?>" class="text-danger" onclick="return confirm('Hapus ketentuan jaminan ini?')"><i class="bi bi-trash-fill"></i></a>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td class="fw-bold text-dark text-start"><i class="bi bi-card-checklist text-orange me-1"></i> <?= htmlspecialchars($j['nama_jaminan']); ?></td>
+                                                <td class="text-start"><?= htmlspecialchars($j['keterangan']); ?></td>
+                                                <td>
+                                                    <a href="master_jaminan.php?hapus=<?= $j['id_jaminan']; ?>" class="text-danger" onclick="return confirm('Hapus ketentuan jaminan ini?')"><i class="bi bi-trash-fill"></i></a>
+                                                </td>
+                                            </tr>
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </tbody>
@@ -164,4 +246,5 @@ $list_jaminan = mysqli_query($koneksi, "SELECT * FROM jenis_jaminan ORDER BY id_
         </div>
     </div>
 </body>
+
 </html>
