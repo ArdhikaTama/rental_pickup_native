@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,59 +12,62 @@
             background-color: #e9ecef;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .navbar {
             background-color: #e9ecef !important;
         }
+
         .nav-link {
             color: #333 !important;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.9rem;
         }
+
         .btn-orange {
             background-color: #fd7e14;
             color: white;
             font-weight: 600;
         }
+
         .btn-orange:hover {
             background-color: #e8590c;
             color: white;
         }
+
         .btn-outline-orange {
             border-color: #fd7e14;
             color: #fd7e14;
             font-weight: 600;
         }
+
         .btn-outline-orange:hover {
             background-color: #fd7e14;
             color: white;
         }
+
         .hero-section {
             padding: 60px 0;
         }
+
         .hero-title {
             font-size: 3rem;
             font-weight: 800;
             color: #333;
             line-height: 1.2;
         }
+
         .text-orange {
             color: #fd7e14;
         }
-        .hero-bg-orange {
-            background-color: #fd7e14;
-            border-radius: 20px;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+
         .card-vehicle {
             border: none;
             border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
+
         .card-vehicle .vehicle-title {
             background-color: #fd7e14;
             color: white;
@@ -72,30 +76,36 @@
             padding: 8px;
             text-transform: uppercase;
         }
+
         .price-table td {
             padding: 5px 0;
             font-size: 0.9rem;
         }
+
         .feature-badge {
             font-size: 0.8rem;
             color: #198754;
             font-weight: 600;
         }
+
         .about-section {
             background-color: #dee2e6;
             padding: 60px 0;
         }
+
         .feature-box {
             background: #f8f9fa;
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             height: 100%;
         }
+
         .feature-icon {
             font-size: 2.5rem;
             color: #fd7e14;
         }
+
         footer {
             background-color: #f8f9fa;
             padding: 40px 0;
@@ -104,6 +114,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light py-3">
@@ -138,9 +149,9 @@
                     </a>
                 </div>
                 <div class="col-lg-6">
-                    <div class="hero-bg-orange">
-                        <img src="https://via.placeholder.com/400x250?text=Mitsubishi+L300" alt="Pickup L300" class="img-fluid drop-shadow">
-                    </div>
+
+                    <img src="assets/l300_box-removebg-preview.png" alt="Pickup L300" class="img-fluid drop-shadow">
+
                 </div>
             </div>
         </div>
@@ -149,12 +160,12 @@
     <section class="py-5" id="gallery">
         <div class="container">
             <h2 class="fw-bold mb-5 text-uppercase">Car Category</h2>
-            
+
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=L300" alt="L300" class="img-fluid mb-3">
+                            <img src="assets/l300-removebg-preview.png" alt="L300" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">L300</div>
                         <div class="card-body bg-white p-4">
@@ -184,7 +195,7 @@
                 <div class="col-md-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=Carry" alt="Carry" class="img-fluid mb-3">
+                            <img src="assets/granmax-removebg-preview.png" alt="Carry" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">CARRY</div>
                         <div class="card-body bg-white p-4">
@@ -214,7 +225,7 @@
                 <div class="col-md-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=L300+Bak" alt="L300" class="img-fluid mb-3">
+                            <img src="assets/l300_box-removebg-preview.png" alt="L300" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">L300</div>
                         <div class="card-body bg-white p-4">
@@ -244,7 +255,7 @@
                 <div class="col-md-4 mt-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=Granmax" alt="Granmax" class="img-fluid mb-3">
+                            <img src="assets/granmax-removebg-preview.png" alt="Granmax" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">GRANMAX</div>
                         <div class="card-body bg-white p-4">
@@ -274,7 +285,7 @@
                 <div class="col-md-4 mt-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=Viar" alt="Viar" class="img-fluid mb-3">
+                            <img src="assets/viar-removebg-preview.png" alt="Viar" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">VIAR</div>
                         <div class="card-body bg-white p-4">
@@ -304,7 +315,7 @@
                 <div class="col-md-4 mt-4">
                     <div class="card card-vehicle h-100">
                         <div class="p-4 text-center bg-white">
-                            <img src="https://via.placeholder.com/250x150?text=Carry+Box" alt="Carry Box" class="img-fluid mb-3">
+                            <img src="assets/pickup_putih-removebg-preview.png" alt="Carry Box" class="img-fluid mb-3">
                         </div>
                         <div class="vehicle-title">CARRY BOX</div>
                         <div class="card-body bg-white p-4">
@@ -359,7 +370,7 @@
         <div class="container text-center py-4">
             <h3 class="fw-bold mb-2">Kami Menyediakan Layanan Sewa Mobil Terbaik di Jakarta</h3>
             <p class="text-muted mb-5">Kami hadir dengan bangga sebagai mitra perjalanan Anda yang terpercaya.</p>
-            
+
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="feature-box">
@@ -411,4 +422,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
