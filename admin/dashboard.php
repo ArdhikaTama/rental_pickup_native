@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once '../koneksi.php';
 
 /** @var mysqli $koneksi */
@@ -9,7 +13,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// ================= LOGIKA PROSES AKSI VALIDASI PESANAN MASUK =================
+// =============================================================================
+// 1. LOGIKA PROSES AKSI VALIDASI PESANAN MASUK
+// =============================================================================
 if (isset($_GET['aksi']) && isset($_GET['id'])) {
     $id_pesan = intval($_GET['id']);
     $status = ($_GET['aksi'] == 'setuju') ? 'dikonfirmasi' : 'dibatalkan';
@@ -29,15 +35,35 @@ if (isset($_GET['aksi']) && isset($_GET['id'])) {
     header("Location: dashboard.php");
     exit();
 }
+
 // =============================================================================
+// 2. QUERY RINGKASAN DATA (INFO CARDS)
+// =============================================================================
+$total_unit      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'] ?? 0;
+$total_pelanggan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'] ?? 0;
+$total_sewa      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pemesanan WHERE status_pemesanan = 'berjalan'"))['total'] ?? 0;
+$total_pendapatan= mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM pemesanan WHERE status_pemesanan = 'selesai'"))['total'] ?? 0;
 
-// Mengambil data ringkasan untuk Info Cards
-$total_unit      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'];
-$total_pelanggan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'];
-$total_sewa      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pemesanan WHERE status_pemesanan = 'berjalan'"))['total'];
-$total_pendapatan= mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM pemesanan WHERE status_pemesanan = 'selesai'"))['total'];
+// =============================================================================
+// 3. DATA UNTUK VISUALISASI GRAFIK OMZET (CHART.JS)
+// =============================================================================
+$tahun_ini = date('Y');
+$query_omzet = mysqli_query($koneksi, "
+    SELECT MONTH(tanggal_booking) as bulan, SUM(total_bayar) as omzet 
+    FROM pemesanan 
+    WHERE YEAR(tanggal_booking) = '$tahun_ini' AND status_pemesanan = 'selesai'
+    GROUP BY MONTH(tanggal_booking)
+");
 
-// Ambil data transaksi pesanan masuk yang butuh validasi atau sedang berjalan
+$data_omzet = array_fill(1, 12, 0); // Default isi Rp 0 untuk Januari - Desember
+while ($row = mysqli_fetch_assoc($query_omzet)) {
+    $data_omzet[(int)$row['bulan']] = (int)$row['omzet'];
+}
+$omzet_js = implode(',', $data_omzet); // Konversi ke format string JS (e.g., 0,350000,700000...)
+
+// =============================================================================
+// 4. QUERY AKTIVITAS OPERASIONAL TERAKHIR
+// =============================================================================
 $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mobil, m.plat_nomor 
     FROM pemesanan p 
     JOIN users u ON p.id_user = u.id_user 
@@ -52,6 +78,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
     <title>Admin Panel - Premium Pickup</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
@@ -150,7 +177,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
             
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
-                    <div class="card-counter">
+                    <div class="card-counter shadow-sm">
                         <div>
                             <span class="text-muted small d-block mb-1">Total Armada</span>
                             <h3 class="fw-bold m-0"><?= $total_unit ?></h3>
@@ -159,7 +186,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card-counter">
+                    <div class="card-counter shadow-sm">
                         <div>
                             <span class="text-muted small d-block mb-1">Total Pelanggan</span>
                             <h3 class="fw-bold m-0"><?= $total_pelanggan ?></h3>
@@ -168,7 +195,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card-counter">
+                    <div class="card-counter shadow-sm">
                         <div>
                             <span class="text-muted small d-block mb-1">Sedang Disewa</span>
                             <h3 class="fw-bold m-0"><?= $total_sewa ?></h3>
@@ -177,7 +204,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card-counter">
+                    <div class="card-counter shadow-sm">
                         <div>
                             <span class="text-muted small d-block mb-1">Omset Selesai</span>
                             <h4 class="fw-bold m-0 text-success">Rp <?= number_format($total_pendapatan ?? 0, 0, ',', '.') ?></h4>
@@ -187,13 +214,27 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                 </div>
             </div>
 
-            <div class="card card-table">
+            <div class="row g-4 mb-4">
+                <div class="col-xl-12">
+                    <div class="card card-table shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="m-0 fw-bold text-secondary text-uppercase"><i class="bi bi-bar-chart-line text-orange me-2"></i>Tren Grafik Omzet Bulanan (<?= $tahun_ini ?>)</h6>
+                            <span class="badge bg-light text-muted border font-monospace">Statistik Real-time</span>
+                        </div>
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="chartOmzetAdmin"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-table shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="m-0 fw-bold text-secondary text-uppercase">Aktivitas Operasional Terakhir</h6>
                     <span class="badge bg-dark">Realtime Sync</span>
                 </div>
                 <div class="table-responsive">
-                    <table class="table align-middle text-center small table-hover">
+                    <table class="table align-middle text-center small table-hover m-0">
                         <thead class="table-light text-secondary">
                             <tr>
                                 <th>Nota</th>
@@ -249,6 +290,42 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
         </footer>
     </div>
 
+    <script>
+        const ctx = document.getElementById('chartOmzetAdmin').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                datasets: [{
+                    label: 'Omset Selesai (Rp)',
+                    data: [<?= $omzet_js; ?>],
+                    backgroundColor: 'rgba(253, 126, 20, 0.25)',
+                    borderColor: 'rgba(253, 126, 20, 1)',
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000) + ' Jt';
+                                return 'Rp ' + value.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
