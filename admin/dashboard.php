@@ -9,6 +9,28 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// ================= LOGIKA PROSES AKSI VALIDASI PESANAN MASUK =================
+if (isset($_GET['aksi']) && isset($_GET['id'])) {
+    $id_pesan = intval($_GET['id']);
+    $status = ($_GET['aksi'] == 'setuju') ? 'dikonfirmasi' : 'dibatalkan';
+    
+    // Update status transaksi pemesanan
+    $update_status = mysqli_query($koneksi, "UPDATE pemesanan SET status_pemesanan = '$status' WHERE id_pemesanan = '$id_pesan'");
+    
+    // Jika ditolak/dibatal, kembalikan ketersediaan armada mobil menjadi 'tersedia' kembali
+    if ($status == 'dibatalkan') {
+        $data_p = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT id_mobil FROM pemesanan WHERE id_pemesanan = '$id_pesan'"));
+        if ($data_p) {
+            $id_mob = $data_p['id_mobil'];
+            mysqli_query($koneksi, "UPDATE mobil SET status_ketersediaan = 'tersedia' WHERE id_mobil = '$id_mob'");
+        }
+    }
+    
+    header("Location: dashboard.php");
+    exit();
+}
+// =============================================================================
+
 // Mengambil data ringkasan untuk Info Cards
 $total_unit      = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM mobil"))['total'];
 $total_pelanggan = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM users WHERE role = 'penyewa'"))['total'];
@@ -28,9 +50,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Premium Pickup</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
@@ -75,7 +95,6 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
 </head>
 <body>
 
-    <!-- SIDEBAR MANAGEMENT -->
     <div class="sidebar d-flex flex-column justify-content-between pb-3">
         <div>
             <div class="brand fw-bold mb-3 d-flex align-items-center">
@@ -114,9 +133,7 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
         </div>
     </div>
 
-    <!-- MAIN CONTENT AREA -->
     <div class="main-content">
-        <!-- TOPBAR -->
         <div class="topbar">
             <span class="text-muted small fw-medium">Sistem Utama Kendali Logistik & Sewa</span>
             <div class="d-flex align-items-center gap-2 small">
@@ -125,14 +142,12 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
             </div>
         </div>
 
-        <!-- DASHBOARD CONTAINER -->
         <div class="container-fluid p-4 flex-grow-1">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="m-0 text-dark fw-normal">Dashboard Ringkasan</h4>
                 <span class="text-muted small"><?= date('l, d F Y') ?></span>
             </div>
             
-            <!-- INFO CARDS ROW -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="card-counter">
@@ -172,7 +187,6 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                 </div>
             </div>
 
-            <!-- TABLE VIEW FOR MONITORING -->
             <div class="card card-table">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="m-0 fw-bold text-secondary text-uppercase">Aktivitas Operasional Terakhir</h6>
@@ -187,11 +201,12 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                                 <th>Armada</th>
                                 <th>Total Tagihan</th>
                                 <th>Status Pemesanan</th>
+                                <th>Opsi Validasi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if(mysqli_num_rows($query_transaksi) == 0): ?>
-                                <tr><td colspan="5" class="text-muted py-3">Belum ada log transaksi masuk.</td></tr>
+                                <tr><td colspan="6" class="text-muted py-3">Belum ada log transaksi masuk.</td></tr>
                             <?php else: ?>
                                 <?php while($t = mysqli_fetch_assoc($query_transaksi)): ?>
                                 <tr>
@@ -208,6 +223,18 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
                                         else echo '<span class="badge bg-danger">Batal</span>';
                                         ?>
                                     </td>
+                                    <td>
+                                        <?php if ($t['status_pemesanan'] == 'pending'): ?>
+                                            <a href="dashboard.php?aksi=setuju&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-success py-1 px-2 border-0" onclick="return confirm('Setujui transaksi rental pickup ini?')">
+                                                <i class="bi bi-check-circle-fill"></i> Setuju
+                                            </a>
+                                            <a href="dashboard.php?aksi=batal&id=<?= $t['id_pemesanan']; ?>" class="btn btn-sm btn-danger py-1 px-2 border-0" onclick="return confirm('Batalkan/Tolak pengajuan sewa ini?')">
+                                                <i class="bi bi-x-circle-fill"></i> Tolak
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted small fw-medium"><i class="bi bi-shield-check text-success"></i> Selesai Validasi</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <?php endwhile; ?>
                             <?php endif; ?>
@@ -217,7 +244,6 @@ $query_transaksi = mysqli_query($koneksi, "SELECT p.*, u.nama_lengkap, m.nama_mo
             </div>
         </div>
 
-        <!-- FOOTER -->
         <footer class="bg-white text-center py-3 text-muted small border-top mt-auto">
             Admin Console Management © Rental Pickup JKT 2026
         </footer>
