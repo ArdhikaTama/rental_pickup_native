@@ -3,10 +3,13 @@ require_once '../koneksi.php';
 
 /** @var mysqli $koneksi */
 
+// Proteksi Halaman Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../login.php");
     exit();
 }
+
+$pesan = "";
 
 // 1. TAMBAH MOBIL BARU
 if (isset($_POST['simpan_mobil'])) {
@@ -20,122 +23,189 @@ if (isset($_POST['simpan_mobil'])) {
                VALUES ('$id_kat', '$nama_mobil', '$plat', '$warna', '$tahun', 'tersedia')";
     
     if (mysqli_query($koneksi, $insert)) {
-        header("Location: master_mobil.php?msg=sukses");
-        exit();
+        $pesan = "<div class='alert alert-success small py-2'>Armada baru berhasil ditambahkan!</div>";
+    } else {
+        $pesan = "<div class='alert alert-danger small py-2'>Gagal menambahkan armada: " . mysqli_error($koneksi) . "</div>";
     }
 }
 
 // 2. HAPUS MOBIL
 if (isset($_GET['hapus'])) {
-    $id_hapus = $_GET['hapus'];
-    mysqli_query($koneksi, "DELETE FROM mobil WHERE id_mobil = '$id_hapus'");
-    header("Location: master_mobil.php?msg=terhapus");
-    exit();
+    $id_hapus = intval($_GET['hapus']);
+    if (mysqli_query($koneksi, "DELETE FROM mobil WHERE id_mobil = '$id_hapus'")) {
+        header("Location: master_mobil.php");
+        exit();
+    }
 }
 
-// Ambil Data Kategori & Mobil untuk Tabel
+// Ambil Data Kategori & Mobil untuk Tabel dan Dropdown
 $list_kategori = mysqli_query($koneksi, "SELECT * FROM kategori");
-$list_mobil    = mysqli_query($koneksi, "SELECT m.*, k.nama_kategori FROM mobil m LEFT JOIN kategori k ON m.id_kategori = k.id_kategori");
+$list_mobil    = mysqli_query($koneksi, "SELECT m.*, k.nama_kategori FROM mobil m LEFT JOIN kategori k ON m.id_kategori = k.id_kategori ORDER BY m.id_mobil DESC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Mobil - Admin</title>
+    <title>Master Mobil - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #e9ecef; font-family: 'Segoe UI', sans-serif; }
-        .text-orange { color: #fd7e14; }
-        .sidebar { background-color: #ffffff; min-height: 100vh; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-        .nav-link-admin { color: #333; font-weight: 500; padding: 12px 20px; display: block; text-decoration: none; border-radius: 8px; }
-        .nav-link-admin:hover, .nav-link-admin.active { background-color: #fd7e14; color: white; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        
+        /* Sidebar Layout - Gray & Orange Accent */
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed; top: 0; left: 0;
+            background-color: #2b2c2d; color: white; padding-top: 15px; z-index: 1000;
+        }
+        .sidebar .brand { padding: 10px 20px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar .menu-section { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #fd7e14; font-weight: bold; padding: 18px 20px 5px; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 10px 20px; font-size: 0.9rem; display: flex; align-items: center; text-decoration: none; border-radius: 4px; margin: 0 10px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #fd7e14; color: white; font-weight: 500; }
+        .sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; }
+        
+        /* Main Content Wrapper */
+        .main-content { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Topbar styling */
+        .topbar {
+            background: white; height: 60px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        
+        .text-orange { color: #fd7e14 !important; }
         .btn-orange { background-color: #fd7e14; color: white; }
         .btn-orange:hover { background-color: #e8590c; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3 col-lg-2 sidebar p-3">
-            <h5 class="fw-bold text-orange mb-4 text-center"><i class="bi bi-shield-lock-fill"></i> ADMIN PANEL</h5>
-            <hr>
-            <div class="d-flex flex-column gap-2">
-                <a href="dashboard.php" class="nav-link-admin"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
-                <a href="master_mobil.php" class="nav-link-admin active"><i class="bi bi-truck me-2"></i> Master Mobil</a>
-                <a href="../logout.php" class="nav-link-admin text-danger mt-5"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+    <div class="sidebar d-flex flex-column justify-content-between pb-3">
+        <div>
+            <div class="brand fw-bold mb-3 d-flex align-items-center">
+                <i class="bi bi-shield-lock-fill me-2 fs-4 text-orange"></i>
+                <div>
+                    <span class="d-block lh-1 small opacity-75 text-white">ADMINISTRATOR</span>
+                    <span class="fs-6 text-uppercase text-orange">Pickup System</span>
+                </div>
+            </div>
+            
+            <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+            
+            <div class="menu-section">Data Master (8)</div>
+            <a href="master_mobil.php" class="nav-link active"><i class="bi bi-truck"></i> Master Mobil</a>
+            <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
+            <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
+            <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
+            <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
+            
+            <div class="menu-section">Alur Transaksi (5)</div>
+            <a href="transaksi_pemesanan.php" class="nav-link"><i class="bi bi-receipt"></i> Pemesanan Baru</a>
+            <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran</a>
+            <a href="transaksi_pengembalian.php" class="nav-link"><i class="bi bi-arrow-counterclockwise"></i> Pengembalian & Denda</a>
+            
+            <div class="menu-section">Pelaporan</div>
+            <a href="laporan_pendapatan.php" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Laporan Pendapatan</a>
+            <a href="laporan_pengeluaran.php" class="nav-link"><i class="bi bi-graph-down-arrow"></i> Laporan Pengeluaran</a>
+            <a href="laporan_rekapitulasi.php" class="nav-link"><i class="bi bi-journal-check"></i> Rekapitulasi Total</a>
+        </div>
+
+        <div class="px-2">
+            <hr class="text-white opacity-25">
+            <a href="../logout.php" class="nav-link text-danger fw-bold rounded bg-light bg-opacity-10" onclick="return confirm('Keluar dari panel admin?')">
+                <i class="bi bi-box-arrow-right text-danger"></i> Sign Out
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <span class="text-muted small fw-medium">Sistem Utama Kendali Logistik & Sewa</span>
+            <div class="d-flex align-items-center gap-2 small">
+                <i class="bi bi-person-gear text-orange fs-5"></i>
+                <span class="fw-semibold text-dark"><?= htmlspecialchars($_SESSION['nama_lengkap']); ?></span>
             </div>
         </div>
 
-        <div class="col-md-9 col-lg-10 p-4">
+        <div class="container-fluid p-4 flex-grow-1">
+            <h4 class="mb-4 text-dark fw-normal">Manajemen Master Mobil</h4>
+            <?= $pesan; ?>
+            
             <div class="row g-4">
-                <div class="col-lg-4">
+                <div class="col-xl-4">
                     <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
-                        <h5 class="fw-bold mb-3 text-uppercase">Tambah Armada</h5>
+                        <h6 class="fw-bold mb-3 text-secondary text-uppercase">Tambah Armada</h6>
                         <form action="" method="POST">
                             <div class="mb-2">
-                                <label class="small fw-bold">Kategori</label>
+                                <label class="small fw-bold mb-1">Kategori</label>
                                 <select name="id_kategori" class="form-select form-select-sm" required>
+                                    <option value="">-- Pilih Kategori --</option>
                                     <?php while ($kat = mysqli_fetch_assoc($list_kategori)): ?>
-                                        <option value="<?= $kat['id_kategori']; ?>"><?= $kat['nama_kategori']; ?></option>
+                                        <option value="<?= $kat['id_kategori']; ?>"><?= htmlspecialchars($kat['nama_kategori']); ?></option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
                             <div class="mb-2">
-                                <label class="small fw-bold">Nama Mobil</label>
+                                <label class="small fw-bold mb-1">Nama Mobil</label>
                                 <input type="text" name="nama_mobil" class="form-control form-control-sm" placeholder="Contoh: L300 Bak Tinggi" required>
                             </div>
                             <div class="mb-2">
-                                <label class="small fw-bold">Plat Nomor</label>
+                                <label class="small fw-bold mb-1">Plat Nomor</label>
                                 <input type="text" name="plat_nomor" class="form-control form-control-sm" placeholder="B 1234 ABC" required>
                             </div>
                             <div class="mb-2">
-                                <label class="small fw-bold">Warna</label>
+                                <label class="small fw-bold mb-1">Warna</label>
                                 <input type="text" name="warna" class="form-control form-control-sm" placeholder="Hitam / Putih" required>
                             </div>
                             <div class="mb-3">
-                                <label class="small fw-bold">Tahun Buat</label>
+                                <label class="small fw-bold mb-1">Tahun Buat</label>
                                 <input type="number" name="tahun_pembuatan" class="form-control form-control-sm" placeholder="2022" required>
                             </div>
-                            <button type="submit" name="simpan_mobil" class="btn btn-orange btn-sm w-100 fw-bold">SIMPAN UNIT</button>
+                            <button type="submit" name="simpan_mobil" class="btn btn-orange btn-sm w-100 fw-bold py-2">SIMPAN UNIT</button>
                         </form>
                     </div>
                 </div>
 
-                <div class="col-lg-8">
+                <div class="col-xl-8">
                     <div class="card border-0 shadow-sm p-4 bg-white rounded-3">
-                        <h5 class="fw-bold mb-3 text-uppercase">Daftar Armada Pickup</h5>
+                        <h6 class="fw-bold mb-3 text-secondary text-uppercase">Daftar Armada Pickup</h6>
                         <div class="table-responsive">
-                            <table class="table table-hover table-bordered align-middle small">
-                                <thead class="table-light">
+                            <table class="table table-hover table-bordered align-middle small text-center m-0">
+                                <thead class="table-light text-secondary">
                                     <tr>
                                         <th>Kategori</th>
                                         <th>Nama Unit</th>
                                         <th>Plat No</th>
+                                        <th>Warna</th>
                                         <th>Tahun</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php while ($m = mysqli_fetch_assoc($list_mobil)): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($m['nama_kategori']); ?></td>
-                                        <td class="fw-bold"><?= htmlspecialchars($m['nama_mobil']); ?></td>
-                                        <td><span class="badge bg-dark"><?= htmlspecialchars($m['plat_nomor']); ?></span></td>
-                                        <td><?= $m['tahun_pembuatan']; ?></td>
-                                        <td>
-                                            <span class="badge <?= ($m['status_ketersediaan'] == 'tersedia') ? 'bg-success' : 'bg-danger'; ?>">
-                                                <?= $m['status_ketersediaan']; ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="master_mobil.php?hapus=<?= $m['id_mobil']; ?>" class="text-danger" onclick="return confirm('Hapus unit ini?')"><i class="bi bi-trash-fill"></i></a>
-                                        </td>
-                                    </tr>
-                                    <?php endwhile; ?>
+                                    <?php if(mysqli_num_rows($list_mobil) == 0): ?>
+                                        <tr><td colspan="7" class="text-muted py-3">Belum ada armada mobil yang diinput.</td></tr>
+                                    <?php else: ?>
+                                        <?php while ($m = mysqli_fetch_assoc($list_mobil)): ?>
+                                        <tr>
+                                            <td><span class="badge bg-secondary"><?= htmlspecialchars($m['nama_kategori'] ?? 'N/A'); ?></span></td>
+                                            <td class="fw-bold text-start text-dark"><?= htmlspecialchars($m['nama_mobil']); ?></td>
+                                            <td><span class="badge bg-dark"><?= htmlspecialchars($m['plat_nomor']); ?></span></td>
+                                            <td><?= htmlspecialchars($m['warna']); ?></td>
+                                            <td><?= $m['tahun_pembuatan']; ?></td>
+                                            <td>
+                                                <span class="badge <?= ($m['status_ketersediaan'] == 'tersedia') ? 'bg-success' : 'bg-danger'; ?>">
+                                                    <?= htmlspecialchars($m['status_ketersediaan']); ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="master_mobil.php?hapus=<?= $m['id_mobil']; ?>" class="text-danger fs-6" onclick="return confirm('Apakah Anda yakin ingin menghapus unit ini?')">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <?php endwhile; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -143,8 +213,12 @@ $list_mobil    = mysqli_query($koneksi, "SELECT m.*, k.nama_kategori FROM mobil 
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
+        <footer class="bg-white text-center py-3 text-muted small border-top mt-auto">
+            Admin Console Management © Rental Pickup JKT 2026
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
