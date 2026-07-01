@@ -15,13 +15,13 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
 $pesan = "";
 
-// 1. PROSES TAMBAH REKENING
+// 1. PROSES TAMBAH REKENING (Disinkronkan ke tabel 'rekening')
 if (isset($_POST['simpan_rekening'])) {
     $nama_bank = mysqli_real_escape_string($koneksi, $_POST['nama_bank']);
     $no_rek    = mysqli_real_escape_string($koneksi, $_POST['nomor_rekening']);
     $atas_nama = mysqli_real_escape_string($koneksi, $_POST['atas_nama']);
 
-    $insert = "INSERT INTO rekening_bank (nama_bank, nomor_rekening, atas_nama) VALUES ('$nama_bank', '$no_rek', '$atas_nama')";
+    $insert = "INSERT INTO rekening (nama_bank, nomor_rekening, atas_nama) VALUES ('$nama_bank', '$no_rek', '$atas_nama')";
     if (mysqli_query($koneksi, $insert)) {
         $pesan = "<div class='alert alert-success small py-2'>Rekening Bank berhasil ditambahkan!</div>";
     } else {
@@ -29,15 +29,16 @@ if (isset($_POST['simpan_rekening'])) {
     }
 }
 
-// 2. PROSES HAPUS REKENING
+// 2. PROSES HAPUS REKENING (Disinkronkan ke tabel 'rekening')
 if (isset($_GET['hapus'])) {
     $id_hapus = intval($_GET['hapus']);
-    mysqli_query($koneksi, "DELETE FROM rekening_bank WHERE id_rekening = '$id_hapus'");
+    mysqli_query($koneksi, "DELETE FROM rekening WHERE id_rekening = '$id_hapus'");
     header("Location: master_rekening.php");
     exit();
 }
 
-$list_rekening = mysqli_query($koneksi, "SELECT * FROM rekening_bank ORDER BY id_rekening DESC");
+// AMBIL DATA DARI TABEL 'rekening'
+$list_rekening = mysqli_query($koneksi, "SELECT * FROM rekening ORDER BY id_rekening DESC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -75,14 +76,14 @@ $list_rekening = mysqli_query($koneksi, "SELECT * FROM rekening_bank ORDER BY id
         
         <a href="dashboard.php" class="nav-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
         
-        <div class="menu-section">Data Master (8)</div>
+        <div class="menu-section">Data Master</div>
         <a href="master_mobil.php" class="nav-link"><i class="bi bi-truck"></i> Master Mobil</a>
         <a href="master_kategori.php" class="nav-link"><i class="bi bi-tags"></i> Kategori & Paket</a>
         <a href="master_sopir.php" class="nav-link"><i class="bi bi-person-badge"></i> Data Sopir</a>
-        <a href="master_rekening.php" class="nav-link"><i class="bi bi-credit-card"></i> Rekening Bank</a>
+        <a href="master_rekening.php" class="nav-link active"><i class="bi bi-credit-card"></i> Rekening Bank</a>
         <a href="master_jaminan.php" class="nav-link"><i class="bi bi-collection"></i> Jenis Jaminan</a>
         
-        <div class="menu-section">Alur Transaksi (5)</div>
+        <div class="menu-section">Alur Transaksi</div>
         <a href="transaksi_booking.php" class="nav-link"><i class="bi bi-calendar-check"></i> Transaksi Booking</a>
         <a href="transaksi_penyewaan.php" class="nav-link"><i class="bi bi-receipt"></i> Transaksi Penyewaan</a>
         <a href="transaksi_pembayaran.php" class="nav-link"><i class="bi bi-wallet2"></i> Pembayaran & DP</a>
